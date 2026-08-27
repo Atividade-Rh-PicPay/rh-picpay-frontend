@@ -1,0 +1,40 @@
+{
+    "sidebar": {
+        "pages": "PAGES",
+        "dashboard": "Dashboard",
+        "employees": "Employees",
+        "preferences": "PREFERENCES",
+        "lightMode": "Light mode",
+        "darkMode": "Dark mode",
+        "language": "Language",
+        "totalEmployees": "Total employees",
+        "addEmployee": "+ Add employee"
+    },
+    "header": {
+        "hrManager": "HR Manager"
+    },
+    "dashboard": {
+        "greeting": "Hi, {{name}}!",
+        "underReviewNotice": "You have {{count}} candidates waiting for review today.",
+        "addEmployeeButton": "Add employee",
+        "viewEmployeesButton": "View employees",
+    "status": {
+        "underReview": "Under review",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "hired": "Hired"
+    },
+        "waitingForReview": "Waiting for review",
+        "recentlyAdded": "Recently added",
+        "seeMore": "See more",
+        "noCandidatesWaiting": "No candidates waiting for review.",
+        "noEmployeesYet": "No employees registered yet.",
+        "approve": "Approve",
+        "reject": "Reject",
+        "loadError": "Could not load dashboard data.",
+        "tryAgain": "Try again"
+    },
+    "common": {
+        "loading": "Loading..."
+    }
+}
