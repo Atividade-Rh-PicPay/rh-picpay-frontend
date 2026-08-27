@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "styled-components";
 import Avatar from "../../components/ui/Avatar";
 import { EmployeeStatusEnum } from "../../types/enums";
-import { type FindManyEmployeesOutputDTO, type EmployeeCardOutputDTO } from "../../types/employee";
 import {
   DashboardContainer,
   TopRow,
@@ -34,33 +33,39 @@ import {
 } from "./style";
 import { ProfileOutputDTO } from "../../types/profile";
 import { profileService } from "../../services/profile.service";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { employeeService } from "../../services/employees.service";
+import { CountEmployeeStatusOutputDTO, EmployeeCardOutputDTO } from "../../types/employee";
 
 type StatusName = keyof typeof EmployeeStatusEnum;
 
-function Dashboard() {
+interface LayoutContext {
+  setEmployeeCount: React.Dispatch<React.SetStateAction<number>>;
+}
 
+function Dashboard() {
   const navigate = useNavigate();
   const theme = useTheme();
-  const [response, setResponse] = useState<FindManyEmployeesOutputDTO | null>(null);
-  const [employees, setEmployees] = useState<EmployeeCardOutputDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [profile, setProfile] = useState<ProfileOutputDTO | null>(null);
+  const [underReview, setUnderReview] = useState<EmployeeCardOutputDTO[]>([]);
+  const [recentlyAdded, setRecentlyAdded] = useState<EmployeeCardOutputDTO[]>([]);
+  const [employeeStatus, setEmployeeStatus] = useState<CountEmployeeStatusOutputDTO | null>(null);
+  const { setEmployeeCount } = useOutletContext<LayoutContext>();
 
   useEffect(() => {
     profileService
-      .getMyProfile()
-      .then(setProfile)
-      .catch(() => {
-        navigate("/login");
-      });
+    .getMyProfile()
+    .then(setProfile)
+    .catch(() => {
+      navigate("/login");
+    });
   }, []);
 
   const STATUS_CONFIG: Record<
-    StatusName,
-    { label: string; color: string; bg: string }
+  StatusName,
+  { label: string; color: string; bg: string }
   > = {
     UNDER_REVIEW: {
       label: "Em análise",
@@ -82,15 +87,21 @@ function Dashboard() {
       color: theme.colors.status.hired,
       bg: theme.colors.status.hiredBg,
     },
-  };
+  }; 
 
-  async function loadEmployees() {
+  async function loadDashboardLists() {
     setLoading(true);
     setError(null);
     try {
-      const result = await employeeService.findMany({});
-      setResponse(result);
-      setEmployees(result?.employees ?? []);
+      const [reviewResult, recentResult, statusResult] = await Promise.all([
+        employeeService.findMany({ status: 1, take: 6, skip: 0, sortDirection: 1 }),
+        employeeService.findMany({ take: 6, skip: 0, sortDirection: 1 }),
+        employeeService.status()
+      ]);
+      setUnderReview(reviewResult?.employees ?? []);
+      setRecentlyAdded(recentResult?.employees ?? []);
+      setEmployeeStatus(statusResult);
+      setEmployeeCount(reviewResult.totalCount);
     } catch (e) {
       setError(e as Error);
     } finally {
@@ -99,33 +110,12 @@ function Dashboard() {
   }
 
   useEffect(() => {
-    loadEmployees();
+    loadDashboardLists();
   }, []);
-
-  const counts = useMemo(() => {
-    const base: Record<StatusName, number> = {
-      UNDER_REVIEW: 0,
-      APPROVED: 0,
-      REJECTED: 0,
-      HIRED: 0,
-    };
-    employees.forEach((e) => {
-      const key = e.status as StatusName;
-      if (base[key] !== undefined) base[key]++;
-    });
-    return base;
-  }, [employees]);
-
-  const underReview = useMemo(
-    () => employees.filter((e) => e.status === "UNDER_REVIEW").slice(0, 6),
-    [employees]
-  );
-
-  const recentlyAdded = useMemo(() => employees.slice(0, 6), [employees]);
 
   async function handleChangeStatus(id: number, newStatus: StatusName) {
     console.log("change status", id, newStatus);
-    await loadEmployees();
+    await loadDashboardLists();
   }
 
   if (loading) return <DashboardContainer>Carregando...</DashboardContainer>;
@@ -133,104 +123,104 @@ function Dashboard() {
   if (error) {
     return (
       <DashboardContainer>
-        <EmptyMessage>Não foi possível carregar os dados do dashboard.</EmptyMessage>
-        <PrimaryButton onClick={loadEmployees}>Tentar novamente</PrimaryButton>
+      <EmptyMessage>Não foi possível carregar os dados do dashboard.</EmptyMessage>
+      <PrimaryButton onClick={loadDashboardLists}>Tentar novamente</PrimaryButton>
       </DashboardContainer>
     );
   }
 
   return (
     <DashboardContainer>
-      <TopRow>
-        <Banner>
-          <BannerTitle>Olá, {profile?.name}!</BannerTitle>
-          <BannerSubtitle>
-            Você tem {counts.UNDER_REVIEW} candidatos aguardando análise hoje.
-          </BannerSubtitle>
-          <BannerActions>
-            <PrimaryButton>Cadastrar funcionário</PrimaryButton>
-            <SecondaryButton>Ver funcionários</SecondaryButton>
-          </BannerActions>
-        </Banner>
+    <TopRow>
+    <Banner>
+    <BannerTitle>Olá, {profile?.name}!</BannerTitle>
+    <BannerSubtitle>
+    Você tem {employeeStatus?.UNDER_REVIEW} candidatos aguardando análise hoje.
+      </BannerSubtitle>
+    <BannerActions>
+    <PrimaryButton>Cadastrar funcionário</PrimaryButton>
+    <SecondaryButton>Ver funcionários</SecondaryButton>
+    </BannerActions>
+    </Banner>
 
-        <StatusGrid>
-          {(Object.keys(STATUS_CONFIG) as StatusName[]).map((key) => (
-            <StatusCard key={key}>
-              <StatusLabel>{STATUS_CONFIG[key].label}</StatusLabel>
-              <StatusValue $color={STATUS_CONFIG[key].color}>
-                {String(counts[key]).padStart(2, "0")}
-                <span>●</span>
-              </StatusValue>
-            </StatusCard>
-          ))}
-        </StatusGrid>
-      </TopRow>
+    <StatusGrid>
+    {(Object.keys(STATUS_CONFIG) as StatusName[]).map((key) => (
+      <StatusCard key={key}>
+      <StatusLabel>{STATUS_CONFIG[key].label}</StatusLabel>
+      <StatusValue $color={STATUS_CONFIG[key].color}>
+      {String(employeeStatus?.[key]).padStart(2, "0")}
+      <span>●</span>
+      </StatusValue>
+      </StatusCard>
+    ))}
+    </StatusGrid>
+    </TopRow>
 
-      <ListsRow>
-        <ListCard>
-          <ListHeader>
-            <ListTitle>Aguardando análise</ListTitle>
-            <SeeMoreLink>Ver mais</SeeMoreLink>
-          </ListHeader>
-          {underReview.length === 0 ? (
-            <EmptyMessage>Nenhum candidato aguardando análise.</EmptyMessage>
-          ) : (
-            underReview.map((e) => (
-              <Row key={e.id}>
-                <RowInfo>
-                  <Avatar name={e.name} />
-                  <RowText>
-                    <RowName>{e.name}</RowName>
-                    <RowEmail>{e.email}</RowEmail>
-                  </RowText>
-                </RowInfo>
-                <RowActions>
-                  <ApproveButton
-                    onClick={() => handleChangeStatus(e.id, "APPROVED")}
-                  >
-                    Aprovar
-                  </ApproveButton>
-                  <RejectButton
-                    onClick={() => handleChangeStatus(e.id, "REJECTED")}
-                  >
-                    Reprovar
-                  </RejectButton>
-                </RowActions>
-              </Row>
-            ))
-          )}
-        </ListCard>
+    <ListsRow>
+    <ListCard>
+    <ListHeader>
+    <ListTitle>Aguardando análise</ListTitle>
+    <SeeMoreLink>Ver mais</SeeMoreLink>
+    </ListHeader>
+    {underReview.length === 0 ? (
+      <EmptyMessage>Nenhum candidato aguardando análise.</EmptyMessage>
+    ) : (
+    underReview.map((e) => (
+      <Row key={e.id}>
+      <RowInfo>
+      <Avatar name={e.name} />
+      <RowText>
+      <RowName>{e.name}</RowName>
+      <RowEmail>{e.email}</RowEmail>
+      </RowText>
+      </RowInfo>
+      <RowActions>
+      <ApproveButton
+      onClick={() => handleChangeStatus(e.id, "APPROVED")}
+      >
+      Aprovar
+      </ApproveButton>
+      <RejectButton
+      onClick={() => handleChangeStatus(e.id, "REJECTED")}
+      >
+      Reprovar
+      </RejectButton>
+      </RowActions>
+      </Row>
+    ))
+    )}
+    </ListCard>
 
-        <ListCard>
-          <ListHeader>
-            <ListTitle>Últimos cadastros</ListTitle>
-            <SeeMoreLink>Ver mais</SeeMoreLink>
-          </ListHeader>
-          {recentlyAdded.length === 0 ? (
-            <EmptyMessage>Nenhum funcionário cadastrado ainda.</EmptyMessage>
-          ) : (
-            recentlyAdded.map((e) => {
-              const config = STATUS_CONFIG[e.status as StatusName];
-              return (
-                <Row key={e.id}>
-                  <RowInfo>
-                    <Avatar name={e.name} />
-                    <RowText>
-                      <RowName>{e.name}</RowName>
-                      <RowEmail>{e.email}</RowEmail>
-                    </RowText>
-                  </RowInfo>
-                  {config && (
-                    <Badge $color={config.color} $bg={config.bg}>
-                      {config.label}
-                    </Badge>
-                  )}
-                </Row>
-              );
-            })
-          )}
-        </ListCard>
-      </ListsRow>
+    <ListCard>
+    <ListHeader>
+    <ListTitle>Últimos cadastros</ListTitle>
+    <SeeMoreLink>Ver mais</SeeMoreLink>
+    </ListHeader>
+    {recentlyAdded.length === 0 ? (
+      <EmptyMessage>Nenhum funcionário cadastrado ainda.</EmptyMessage>
+    ) : (
+    recentlyAdded.map((e) => {
+      const config = STATUS_CONFIG[e.status as StatusName];
+      return (
+        <Row key={e.id}>
+        <RowInfo>
+        <Avatar name={e.name} />
+        <RowText>
+        <RowName>{e.name}</RowName>
+        <RowEmail>{e.email}</RowEmail>
+        </RowText>
+        </RowInfo>
+        {config && (
+          <Badge $color={config.color} $bg={config.bg}>
+          {config.label}
+          </Badge>
+        )}
+        </Row>
+      );
+    })
+    )}
+    </ListCard>
+    </ListsRow>
     </DashboardContainer>
   );
 }

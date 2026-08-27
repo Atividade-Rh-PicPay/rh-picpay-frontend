@@ -1,5 +1,6 @@
 import { api } from "./api";
 import {
+    CountEmployeeStatusOutputDTO,
   EmployeeDetailsOutputDTO,
   EmployeeRequestDTO,
   FindManyEmployeesOutputDTO,
@@ -7,14 +8,22 @@ import {
 } from "../types/employee";
 
 export const employeeService = {
+  status: () =>
+    api
+      .get<CountEmployeeStatusOutputDTO>("/api/v1/employees/status")
+      .then((r) => r.data),
+
   findMany: (query: FindManyEmployeesQueryParamsDTO) =>
     api
-      .get<FindManyEmployeesOutputDTO>("/api/v1/employees", { params: query })
+      .get<FindManyEmployeesOutputDTO>("/api/v1/employees", { 
+        params: query, 
+      })
       .then((r) => r.data),
 
   findOne: (id: number) =>
     api
-      .get<EmployeeDetailsOutputDTO>(`/api/v1/employees/${id}`)
+      .get<EmployeeDetailsOutputDTO>(`/api/v1/employees/${id}`, {
+      })
       .then((r) => r.data),
 
   register: (data: EmployeeRequestDTO) =>

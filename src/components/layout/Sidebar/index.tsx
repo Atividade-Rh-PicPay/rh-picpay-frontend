@@ -21,6 +21,10 @@ interface NavItem {
   icon: ReactNode;
 }
 
+interface SidebarProps {
+  employeeCount: number;
+}
+
 const navItems: NavItem[] = [
   {
     to: "/dashboard",
@@ -47,7 +51,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ employeeCount }: SidebarProps) {
   const { isDark, toggleTheme } = useThemeContext();
 
   return (
@@ -123,7 +127,7 @@ export default function Sidebar() {
 
       <BottomCard>
         <BottomCardLabel>Quantidade de Funcionário</BottomCardLabel>
-        <BottomCardValue>142</BottomCardValue>
+        <BottomCardValue>{employeeCount}</BottomCardValue>
         <BottomCardButton><span>+</span>Cadastrar funcionários</BottomCardButton>
       </BottomCard>
     </Aside>
