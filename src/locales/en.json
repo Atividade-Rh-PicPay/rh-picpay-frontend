@@ -36,5 +36,51 @@
     },
     "common": {
         "loading": "Loading..."
-    }
+    },
+    "employees": {
+            "greeting": "Employees",
+            "underReviewNotice": "Manage candidates and employees registered in the system.",
+            "employeeCount": {
+                "title": "Number of Employees",
+                "registeredToday": "{{count}} registered today"
+            },
+            "search": {
+                "placeholder": "Search by name or position"
+            },
+            "filter": {
+                "button": "Filter",
+                "title": "Filter by status",
+                "status": {
+                    "underReview": "Under Review",
+                    "approved": "Approved",
+                    "rejected": "Rejected",
+                    "hired": "Hired"
+                }
+            },
+            "table": {
+                "name": "Name",
+                "position": "Position",
+                "department": "Department",
+                "status": "Status",
+                "actions": "Action"
+            },
+            "actions": {
+                "addEmployee": "New Employee",
+                "view": "View Details",
+                "edit": "Edit",
+                "delete": "Delete"
+            },
+            "status": {
+                "underReview": "Under Review",
+                "approved": "Approved",
+                "rejected": "Rejected",
+                "hired": "Hired"
+            },
+            "empty": {
+                "noEmployees": "No employees registered yet.",
+                "noResults": "No employees found."
+            },
+            "loadError": "Unable to load employees.",
+            "tryAgain": "Try Again"
+        }
 }

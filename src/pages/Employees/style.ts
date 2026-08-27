@@ -287,3 +287,111 @@ export const ActionMenuButton = styled.button`
     background: ${({ theme }) => theme.colors.background};
 }
 `;
+
+export const ActionMenuWrapper = styled.div`
+    position: relative;
+    display: inline-block;
+`
+
+export const ActionsMenu = styled.div`
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background: ${({ theme }) => theme.colors.surface};
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+    padding: 16px;
+    z-index: 20;
+    text-align: left;
+`;
+
+export const ActionsMenuTitle = styled.p`
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: ${({theme}) => theme.colors.textSecondary};
+    padding-bottom: 12px;
+    border-bottom: 1px solid ${({theme}) => theme.colors.border};
+`
+
+export const ActionsMenuItem = styled.button<{$danger?: boolean }>`
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: none;
+    background: transparent;
+    padding: 10px 4px;
+    font-size: 15px;
+    cursor: pointer;
+    color: ${({theme, $danger}) => ($danger ? theme.colors.status.rejected : theme.colors.textPrimary)};
+
+    &:hover {
+        opacity: 0.75;
+    }
+`;
+
+export const ModalOverlay = styled.div`
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+`;
+
+export const ModalBox = styled.div`
+    width: 100%;
+    max-width: 380px;
+    background: ${({theme}) => theme.colors.surface};
+    border-radius: 20px;
+    padding: 28px;
+    text-align: center;
+`;
+
+export const ModalTitle = styled.h2`
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: ${({theme}) => theme.colors.textPrimary};
+`;
+
+export const ModalText = styled.p`
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: ${({ theme }) => theme.colors.textSecondary};
+
+strong {
+    color: ${({ theme }) => theme.colors.textPrimary};
+}
+`;
+
+export const ModalActions = styled.div`
+    display: flex;
+    gap: 12px;
+`;
+
+export const ModalCancelButton = styled.button`
+    flex: 1;
+    padding: 12px;
+    border-radius: 30px;
+    border: 1px solid ${({theme}) => theme.colors.border};
+    background: transparent;
+    color: ${({theme}) => theme.colors.textPrimary};
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+`;
+
+export const ModalDeleteButton = styled.button`
+    flex: 1;
+    padding: 12px;
+    border-radius: 30px;
+    border: none;
+    background: ${({theme}) => theme.colors.status.rejected};
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+`;

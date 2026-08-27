@@ -36,5 +36,51 @@
     },
     "common": {
         "loading": "Carregando..."
+    },
+    "employees": {
+        "greeting": "Funcionários",
+        "underReviewNotice": "Gerencie os candidatos e funcionários cadastrados no sistema.",
+        "employeeCount": {
+            "title": "Quantidade de Funcionários",
+            "registeredToday": "{{count}} cadastrados hoje"
+        },
+        "search": {
+            "placeholder": "Buscar por nome ou cargo"
+        },
+        "filter": {
+            "button": "Filtrar",
+            "title": "Filtrar por status",
+            "status": {
+                "underReview": "Em análise",
+                "approved": "Aprovado",
+                "rejected": "Rejeitado",
+                "hired": "Contratado"
+            }
+        },
+        "table": {
+            "name": "Nome",
+            "position": "Cargo",
+            "department": "Departamento",
+            "status": "Status",
+            "actions": "Ação"
+        },
+        "actions": {
+            "addEmployee": "Novo Funcionário",
+            "view": "Ver Detalhes",
+            "edit": "Editar",
+            "delete": "Excluir"
+        },
+        "status": {
+            "underReview": "Em análise",
+            "approved": "Aprovado",
+            "rejected": "Rejeitado",
+            "hired": "Contratado"
+        },
+        "empty": {
+            "noEmployees": "Nenhum funcionário cadastrado ainda.",
+            "noResults": "Nenhum funcionário encontrado."
+        },
+        "loadError": "Não foi possível carregar os funcionários.",
+        "tryAgain": "Tentar novamente"
     }
 }
