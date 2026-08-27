@@ -395,3 +395,20 @@ export const ModalDeleteButton = styled.button`
     font-weight: 600;
     cursor: pointer;
 `;
+export const ModalIcon = styled.div`
+    width: 64px;
+    height: 64px;
+    align-items: center;
+    stroke-width: 1.5;
+    justify-content: center;
+    margin: 0 auto 16px;
+    color: ${({theme}) => theme.colors.status.rejected};
+`;
+
+export const ModalAddButton = styled.button`
+    width: 100%;
+    padding: 12px;
+    background: #000000
+    ;
+
+`
