@@ -1,23 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
-import PrivateRoute from "./../components/PrivateRoute/index";
+import Layout from "../components/layout/Layout";
 
-function App() {
-  return (
+export default function App() {
+return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/dashboard"
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
-      <Route path="*" element={<Login />} />
+        <Route element={<Layout />}>
+        <Route path="/" element={<Dashboard />} />
+        </Route>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Dashboard />} />
     </Routes>
-  );
+);
 }
-
-export default App;

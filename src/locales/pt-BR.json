@@ -1,0 +1,40 @@
+{
+    "sidebar": {
+        "pages": "PÁGINAS",
+        "dashboard": "Indicadores",
+        "employees": "Funcionários",
+        "preferences": "PREFERÊNCIAS",
+        "lightMode": "Modo claro",
+        "darkMode": "Modo escuro",
+        "language": "Idioma",
+        "totalEmployees": "Total de funcionários",
+        "addEmployee": "+ Cadastrar funcionário"
+    },
+    "header": {
+        "hrManager": "Gerente de RH"
+    },
+    "dashboard": {
+        "greeting": "Olá, {{name}}!",
+        "underReviewNotice": "Você tem {{count}} candidatos aguardando análise hoje.",
+        "addEmployeeButton": "Cadastrar funcionário",
+        "viewEmployeesButton": "Ver funcionários",
+        " status": {
+            "underReview": "Em análise",
+            "approved": "Aprovado",
+            "rejected": "Reprovado",
+            "hired": "Contratado"
+    },
+        "waitingForReview": "Aguardando análise",
+        "recentlyAdded": "Últimos cadastros",
+        "seeMore": "Ver mais",
+        "noCandidatesWaiting": "Nenhum candidato aguardando análise.",
+        "noEmployeesYet": "Nenhum funcionário cadastrado ainda.",
+        "approve": "Aprovar",
+        "reject": "Reprovar",
+        "loadError": "Não foi possível carregar os indicadores.",
+        "tryAgain": "Tentar novamente"
+    },
+    "common": {
+        "loading": "Carregando..."
+    }
+}

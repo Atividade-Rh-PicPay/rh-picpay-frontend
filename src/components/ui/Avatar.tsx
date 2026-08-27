@@ -1,37 +1,50 @@
+import styled from "styled-components";
+
 const AVATAR_COLORS = [
-    "bg-emerald-100 text-emerald-700",
-    "bg-blue-100 text-blue-700",
-    "bg-amber-100 text-amber-700",
-    "bg-rose-100 text-rose-700",
-    "bg-violet-100 text-violet-700",
-    "bg-cyan-100 text-cyan-700",
+    {bg: "#D1FAE5", text: "#047857"},
+    {bg: "#DBEAFE", text: "#1D4ED8"},
+    {bg: "#FEF3C7", text: "#B45309"},
+    {bg: "#FCE7F3", text: "#BE185D"},
+    {bg: "#EDE9FE", text: "#6D28D9"},
+    {bg: "#CFFAFE", text: "#0E7490"},
 ];
 
-    function getInitials(nome: string): string {
-        const partes = nome.trim().split(" ").filter(Boolean);
-        const primeira = partes[0]?.[0] ?? "";
-        const ultima = partes.length > 1 ? partes[partes.length - 1][0] : "";
-    return (primeira + ultima).toUpperCase();
+function getInitials(name: string): string {
+    const parts = name.trim().split(" ").filter(Boolean);
+    const first = parts[0]?.[0] ?? "";
+    const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + last).toUpperCase();
 }
 
-    function getAvatarColor(nome: string): string {
-        const soma = nome.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-        return AVATAR_COLORS[soma % AVATAR_COLORS.length];
+function getColor(name: string) {
+    const sum = name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return AVATAR_COLORS[sum % AVATAR_COLORS.length];
 }
 
-    interface AvatarProps {
-        nome: string;
-        size?: string;
-    }
+const Circle = styled.div<{$bg: string; $text: string; $size: number}>`
+    width: ${({ $size }) => $size}px;
+    height: ${({ $size }) => $size}px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+    font-size: ${({ $size }) => $size * 0.4}px;
+    background: ${({ $bg }) => $bg};
+    color: ${({ $text }) => $text};
+`;
 
-    export default function Avatar({ nome, size = "w-10 h-10" }: AvatarProps) {
+interface AvatarProps {
+    name: string;
+    size?: number;
+}
+
+export default function Avatar({name, size = 40}: AvatarProps) {
+    const {bg, text} = getColor(name);
     return (
-        <div
-        className={`${size} rounded-full flex items-center justify-center font-semibold text-sm shrink-0 ${getAvatarColor(
-            nome
-        )}`}
-        >
-        {getInitials(nome)}
-    </div>
-    );
-    }
+        <Circle $bg={bg} $text={text} $size={size}>
+        {getInitials(name)}
+    </Circle>
+);
+}
