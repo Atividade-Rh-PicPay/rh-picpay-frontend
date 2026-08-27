@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { authService } from "./../services/auth.service";
+import { authService, setAuthToken } from "./../services/auth.service";
 
 interface AuthState {
   accessToken: string | null;
@@ -28,10 +28,12 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
       refreshToken: data.refreshToken,
       email: data.email,
     });
+    setAuthToken(data.accessToken);
   }
 
   function logout() {
     setState({ accessToken: null, refreshToken: null, email: null });
+    setAuthToken(null);
   }
 
   return (

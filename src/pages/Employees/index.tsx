@@ -1,5 +1,5 @@
-import {useState} from "react";
-import {useTheme} from "styled-components";
+import { useEffect, useState } from "react";
+import { useTheme } from "styled-components";
 import Avatar from "../../components/ui/Avatar";
 import {
     EmployeesContainer,
@@ -32,20 +32,52 @@ import {
     FilterTitle,
     FilterOption
 } from "./style";
+import { employeeService } from "../../services/employees.service";
+import { EmployeeCardOutputDTO } from "../../types/employee";
+import axios from "axios";
+
+function getStatusColor(status: string): string {
+    switch (status) {
+        case "Aprovado":
+        case "Contratado":
+            return "#17C777";
+        case "Rejeitado":
+            return "#F04438";
+        case "Em análise":
+        default:
+            return "#F5A623";
+    }
+}
 
 export default function Employees() {
     const theme = useTheme();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [employees, setEmployees] = useState<EmployeeCardOutputDTO[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
 
-    const mockEmployees = Array(5).fill({
-        name: "Maria Nogueira Silva",
-        email: "maria.nogueira@gmail.com",
-        role: "Analista Suporte",
-        department: "Tecnologia",
-        status: "Em análise",
-        statusColor: theme.colors.status.review
-    }).map((emp, index) => ({ ...emp, id: index + 1 }));
+    useEffect(() => {
+        setLoading(true);
+        setError(null);
+
+        employeeService
+            .findMany({ name: search || undefined })
+            .then((data) => {
+                setEmployees(data.employees);
+                setTotalCount(data.totalCount);
+            })
+            .catch((err) => {
+                if (axios.isAxiosError(err)) {
+                    const message = err.response?.data?.message ?? "Erro ao buscar funcionários";
+                    setError(message);
+                } else {
+                    setError("Erro inesperado ao buscar funcionários");
+                }
+            })
+            .finally(() => setLoading(false));
+    }, [search]);
 
     return (
         <EmployeesContainer>
@@ -60,7 +92,7 @@ export default function Employees() {
             <StatsCard>
             <StatsTitle>Quantidade de Funcionários</StatsTitle>
             <StatsValueRow>
-                <StatsValue>142</StatsValue>
+                <StatsValue>{totalCount}</StatsValue>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={theme.colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                 <circle cx="9" cy="7" r="4"></circle>
@@ -68,9 +100,10 @@ export default function Employees() {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
             </StatsValueRow>
-            <StatsSubtext>23 cadastrados hoje</StatsSubtext>
+            <StatsSubtext>{totalCount} cadastrados no total</StatsSubtext>
             </StatsCard>
         </HeaderRow>
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
         <ActionRow>
             <SearchWrapper>
@@ -120,22 +153,22 @@ export default function Employees() {
             <TableHeader>Status</TableHeader>
             <TableHeader style={{ textAlign: "center" }}>Ação</TableHeader>
 
-            {mockEmployees.map((emp) => (
+            {!loading && employees.map((emp) => (
             <TableRow key={emp.id}>
-                
+
                 <RowInfo>
                         <Avatar name={emp.name} />
-                    
+
                     <RowText>
                     <RowName>{emp.name}</RowName>
                     <RowEmail>{emp.email}</RowEmail>
                     </RowText>
                 </RowInfo>
-                
+
                 <div style={{ fontWeight: 500 }}>{emp.role}</div>
                 <div style={{ color: theme.colors.textSecondary }}>{emp.department}</div>
-                
-                <StatusBadge $dotColor={emp.statusColor}>
+
+                <StatusBadge $dotColor={getStatusColor(emp.status)}>
                     <span className="dot" /> {emp.status}
                 </StatusBadge>
 
@@ -148,7 +181,7 @@ export default function Employees() {
                     </svg>
                     </ActionMenuButton>
                 </div>
-                
+
                 </TableRow>
             ))}
         </TableGrid>

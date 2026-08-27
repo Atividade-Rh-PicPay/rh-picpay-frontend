@@ -1,8 +1,8 @@
-import {useEffect, useMemo, useState } from "react";
-import {useTheme} from "styled-components";
+import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "styled-components";
 import Avatar from "../../components/ui/Avatar";
-import {EmployeeStatusEnum} from "../../types/enums";
-import type {EmployeeCardOutputDTO} from "../../types/employee";
+import { EmployeeStatusEnum } from "../../types/enums";
+import { type FindManyEmployeesOutputDTO, type EmployeeCardOutputDTO } from "../../types/employee";
 import {
   DashboardContainer,
   TopRow,
@@ -32,14 +32,31 @@ import {
   RejectButton,
   Badge,
 } from "./style";
+import { ProfileOutputDTO } from "../../types/profile";
+import { profileService } from "../../services/profile.service";
+import { useNavigate } from "react-router-dom";
+import { employeeService } from "../../services/employees.service";
 
 type StatusName = keyof typeof EmployeeStatusEnum;
 
 function Dashboard() {
+
+  const navigate = useNavigate();
   const theme = useTheme();
+  const [response, setResponse] = useState<FindManyEmployeesOutputDTO | null>(null);
   const [employees, setEmployees] = useState<EmployeeCardOutputDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [profile, setProfile] = useState<ProfileOutputDTO | null>(null);
+
+  useEffect(() => {
+    profileService
+      .getMyProfile()
+      .then(setProfile)
+      .catch(() => {
+        navigate("/login");
+      });
+  }, []);
 
   const STATUS_CONFIG: Record<
     StatusName,
@@ -71,7 +88,9 @@ function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      setEmployees([]);
+      const result = await employeeService.findMany({});
+      setResponse(result);
+      setEmployees(result?.employees ?? []);
     } catch (e) {
       setError(e as Error);
     } finally {
@@ -124,7 +143,7 @@ function Dashboard() {
     <DashboardContainer>
       <TopRow>
         <Banner>
-          <BannerTitle>Olá, Gabriel!</BannerTitle>
+          <BannerTitle>Olá, {profile?.name}!</BannerTitle>
           <BannerSubtitle>
             Você tem {counts.UNDER_REVIEW} candidatos aguardando análise hoje.
           </BannerSubtitle>
