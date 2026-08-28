@@ -1,5 +1,8 @@
 import type {ReactNode} from "react";
+import { useState} from "react";
+import handleCreateEmployee from "../../../pages/Employees"
 import {useThemeContext} from "../../../contexts/ThemeContext";
+import EmployeeFormModal from "../../employers/EmployeeFormModal";
 import {
   Aside,
   LogoRow,
@@ -38,6 +41,7 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  
   {
     to: "/employees",
     label: "Funcionários",
@@ -53,6 +57,8 @@ const navItems: NavItem[] = [
 
 export default function Sidebar({ employeeCount }: SidebarProps) {
   const { isDark, toggleTheme } = useThemeContext();
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  
 
   return (
     <Aside>
@@ -128,8 +134,17 @@ export default function Sidebar({ employeeCount }: SidebarProps) {
       <BottomCard>
         <BottomCardLabel>Quantidade de Funcionário</BottomCardLabel>
         <BottomCardValue>{employeeCount}</BottomCardValue>
-        <BottomCardButton><span>+</span>Cadastrar funcionários</BottomCardButton>
+        <BottomCardButton  onClick={() => setIsAddOpen(true)}><span>+</span>Cadastrar funcionários</BottomCardButton>
       </BottomCard>
+
+      {isAddOpen && (
+                <EmployeeFormModal
+                      mode="create"
+                      onClose={() => setIsAddOpen(false)}
+                      onSave={handleCreateEmployee}
+                  />
+              )}
+
     </Aside>
   );
 }
