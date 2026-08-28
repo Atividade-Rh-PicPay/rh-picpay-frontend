@@ -36,6 +36,7 @@ import { profileService } from "../../services/profile.service";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { employeeService } from "../../services/employees.service";
 import { CountEmployeeStatusOutputDTO, EmployeeCardOutputDTO } from "../../types/employee";
+import { getStatusInfo } from "../../utils/employee.status";
 
 type StatusName = keyof typeof EmployeeStatusEnum;
 
@@ -201,7 +202,7 @@ function Dashboard() {
       <EmptyMessage>Nenhum funcionário cadastrado ainda.</EmptyMessage>
     ) : (
     recentlyAdded.map((e) => {
-      const config = STATUS_CONFIG[e.status as StatusName];
+      const status = getStatusInfo(e.status);
       return (
         <Row key={e.id}>
         <RowInfo>
@@ -211,11 +212,9 @@ function Dashboard() {
         <RowEmail>{e.email}</RowEmail>
         </RowText>
         </RowInfo>
-        {config && (
-          <Badge $color={config.color} $bg={config.bg}>
-          {config.label}
-          </Badge>
-        )}
+        <Badge $color={status.color}>
+          {status.label}
+        </Badge>
         </Row>
       );
     })

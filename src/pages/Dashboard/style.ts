@@ -222,11 +222,10 @@ export const RejectButton = styled.button`
     cursor: pointer;
 `;
 
-export const Badge = styled.span<{$color: string; $bg: string}>`
+export const Badge = styled.span<{$color: string}>`
     padding: 4px 10px;
     border-radius: 30px;
     font-size: 12px;
     font-weight: 600;
     color: ${({$color}) => $color};
-    background: ${({$bg}) => $bg};
 `;
