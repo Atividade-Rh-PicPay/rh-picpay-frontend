@@ -2,6 +2,8 @@ import { FormEvent, useState } from "react";
 import axios from "axios";
 import { employeeService } from "../../services/employees.service";
 import { EmployeeRequestDTO } from "../../types/employee";
+import { EmployeeStatusEnum } from "../../types/enums";
+import { normalizeStatus, statusOptions } from "../../utils/employee.status";
 import {
     ModalOverlay,
     FormModalBox,
@@ -33,6 +35,7 @@ const emptyForm: EmployeeRequestDTO = {
     department: "",
     salary: 0,
     city: "",
+    status: EmployeeStatusEnum.UNDER_REVIEW,
 };
 
 function extractErrorMessage(err: unknown, fallback: string): string {
@@ -53,6 +56,7 @@ export default function EmployeeFormModal({
     const [form, setForm] = useState<EmployeeRequestDTO>({
         ...emptyForm,
         ...initialData,
+        status: normalizeStatus(initialData?.status) ?? emptyForm.status,
     });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -60,7 +64,7 @@ export default function EmployeeFormModal({
     function handleChange(field: keyof EmployeeRequestDTO, value: string) {
         setForm((prev) => ({
             ...prev,
-            [field]: field === "salary" ? Number(value) : value,
+            [field]: field === "salary" || field === "status" ? Number(value) : value,
         }));
     }
 
@@ -126,6 +130,25 @@ export default function EmployeeFormModal({
                                     value={form.password}
                                     onChange={(e) => handleChange("password", e.target.value)}
                                 />
+                            </FormGroup>
+                        )}
+
+                        {mode === "edit" && (
+                            <FormGroup $fullWidth>
+                                <FormLabel htmlFor="status">Status</FormLabel>
+                                <FormInput
+                                    as="select"
+                                    id="status"
+                                    required
+                                    value={form.status}
+                                    onChange={(e) => handleChange("status", e.target.value)}
+                                >
+                                  {statusOptions.map((option: { label: string; value: EmployeeStatusEnum }) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </FormInput>
                             </FormGroup>
                         )}
 
