@@ -1,5 +1,6 @@
 import type {ReactNode} from "react";
 import {useThemeContext} from "../../../contexts/ThemeContext";
+import { useNavigate } from "react-router-dom";
 import {
   Aside,
   LogoRow,
@@ -53,7 +54,7 @@ const navItems: NavItem[] = [
 
 export default function Sidebar({ employeeCount }: SidebarProps) {
   const { isDark, toggleTheme } = useThemeContext();
-
+  const navigate = useNavigate();
   return (
     <Aside>
       <LogoRow>
@@ -124,11 +125,12 @@ export default function Sidebar({ employeeCount }: SidebarProps) {
           </svg>
         </span>
       </PreferenceRow>
-
       <BottomCard>
         <BottomCardLabel>Quantidade de Funcionário</BottomCardLabel>
         <BottomCardValue>{employeeCount}</BottomCardValue>
-        <BottomCardButton><span>+</span>Cadastrar funcionários</BottomCardButton>
+        <BottomCardButton onClick={() => navigate("/employees?new=true")}>
+          <span>+</span>Cadastrar funcionários
+        </BottomCardButton>
       </BottomCard>
     </Aside>
   );

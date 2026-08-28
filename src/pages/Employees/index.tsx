@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
+import { useSearchParams } from "react-router-dom";
 import Avatar from "../../components/ui/Avatar";
 import EmployeeFormModal from "../../components/employees/EmployeeFormModal";
 import EmployeeDetailsModal from "../../components/employees/EmployeeDetailsModal";
@@ -71,8 +72,10 @@ export default function Employees() {
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
     const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeCardOutputDTO | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isAddOpen, setIsAddOpen] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<EmployeeStatusEnum | undefined>(undefined);
     const menuRef = useRef<HTMLDivElement>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [employeeToEdit, setEmployeeToEdit] = useState<{
@@ -131,6 +134,14 @@ export default function Employees() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (searchParams.get("new") === "true") {
+            setIsNewModalOpen(true);
+            searchParams.delete("new");
+            setSearchParams(searchParams, { replace: true });
+        }
+    }, [searchParams, setSearchParams]);
 
     useEffect(() => {
         if (openMenuId === null) return;
