@@ -1,5 +1,6 @@
 import { api } from "./api";
 import {
+    CountEmployeesOutputDTO,
     CountEmployeeStatusOutputDTO,
   EmployeeDetailsOutputDTO,
   EmployeeRequestDTO,
@@ -43,4 +44,7 @@ export const employeeService = {
 
   deleteOne: (id: number) =>
     api.delete<void>(`/api/v1/employees/${id}`).then((r) => r.data),
+
+  count: () =>
+    api.get<CountEmployeesOutputDTO>(`/api/v1/employees/count`).then((r) => r.data),    
 };

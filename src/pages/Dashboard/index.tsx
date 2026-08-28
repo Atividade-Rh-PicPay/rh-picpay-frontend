@@ -93,15 +93,16 @@ function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const [reviewResult, recentResult, statusResult] = await Promise.all([
+      const [reviewResult, recentResult, statusResult, countResult] = await Promise.all([
         employeeService.findMany({ status: 1, take: 6, skip: 0, sortDirection: 1 }),
         employeeService.findMany({ take: 6, skip: 0, sortDirection: 1 }),
-        employeeService.status()
+        employeeService.status(),
+        employeeService.count()
       ]);
       setUnderReview(reviewResult?.employees ?? []);
       setRecentlyAdded(recentResult?.employees ?? []);
       setEmployeeStatus(statusResult);
-      setEmployeeCount(reviewResult.totalCount);
+      setEmployeeCount(countResult.count);
     } catch (e) {
       setError(e as Error);
     } finally {

@@ -395,3 +395,100 @@ export const ModalDeleteButton = styled.button`
     font-weight: 600;
     cursor: pointer;
 `;
+
+export const FormModalBox = styled(ModalBox)`
+    max-width: 520px;
+    text-align: left;
+`;
+
+export const FormGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+export const FormGroup = styled.div<{ $fullWidth?: boolean }>`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    ${({ $fullWidth }) => $fullWidth && `grid-column: 1 / -1;`}
+`;
+
+export const FormLabel = styled.label`
+    font-size: 13px;
+    font-weight: 600;
+    color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const FormInput = styled.input`
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.background};
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+        border-color: ${({ theme }) => theme.colors.primary};
+    }
+`;
+
+export const FormError = styled.p`
+    margin: -8px 0 16px;
+    font-size: 13px;
+    color: ${({ theme }) => theme.colors.status.rejected};
+    text-align: left;
+`;
+
+export const DetailsGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+    margin-bottom: 24px;
+    text-align: left;
+
+    @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+    }
+`;
+
+export const DetailBlock = styled.div<{ $fullWidth?: boolean }>`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    ${({ $fullWidth }) => $fullWidth && `grid-column: 1 / -1;`}
+`;
+
+export const DetailLabel = styled.span`
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: ${({ theme }) => theme.colors.textSecondary};
+`;
+
+export const DetailValue = styled.span`
+    font-size: 15px;
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.textPrimary};
+`;
+
+export const ModalFormActions = styled(ModalActions)`
+    margin-top: 8px;
+`;
+
+export const ModalSubmitButton = styled(ModalDeleteButton)`
+    background: ${({ theme }) => theme.colors.primary};
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+`;

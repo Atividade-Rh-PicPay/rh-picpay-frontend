@@ -1,3 +1,5 @@
+import { EmployeeStatusEnum } from "./enums";
+
 export interface EmployeeRequestDTO {
   name: string;
   email: string;
@@ -28,7 +30,7 @@ export interface EmployeeCardOutputDTO {
   email: string;
   role: string;
   department: string;
-  status: string;
+  status: EmployeeStatusEnum;
 }
 
 export interface CountEmployeeStatusOutputDTO{
@@ -51,4 +53,8 @@ export interface FindManyEmployeesQueryParamsDTO {
 export interface FindManyEmployeesOutputDTO {
   employees: EmployeeCardOutputDTO[];
   totalCount: number;
+}
+
+export interface CountEmployeesOutputDTO{
+  count: number;
 }

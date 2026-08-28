@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 import { useTheme } from "styled-components";
 import Avatar from "../../components/ui/Avatar";
+import EmployeeFormModal from "../../components/employees/EmployeeFormModal";
+import EmployeeDetailsModal from "../../components/employees/EmployeeDetailsModal";
 import {
     EmployeesContainer,
     HeaderRow,
@@ -41,22 +43,33 @@ import {
     ModalText,
     ModalActions,
     ModalCancelButton,
-    ModalDeleteButton
+    ModalDeleteButton,
 } from "./style";
 import { employeeService } from "../../services/employees.service";
-import { EmployeeCardOutputDTO } from "../../types/employee";
+import { EmployeeCardOutputDTO, EmployeeRequestDTO } from "../../types/employee";
 import axios from "axios";
+import { EmployeeStatusEnum } from "../../types/enums";
+import { useEffect } from "react";
 
-function getStatusColor(status: string): string {
-    switch (status) {
-        case "Aprovado":
-        case "Contratado":
-            return "#17C777";
-        case "Rejeitado":
-            return "#F04438";
-        case "Em análise":
+type StatusValue = EmployeeStatusEnum | { id: number; message: string };
+
+function getStatusInfo(status: StatusValue): { label: string; color: string } {
+    const key = typeof status === "object" ? status.message : status;
+
+    switch (key) {
+        case "employee.status.approved":
+        case EmployeeStatusEnum.APPROVED:
+            return { label: "Aprovado", color: "#17C777" };
+        case "employee.status.hired":
+        case EmployeeStatusEnum.HIRED:
+            return { label: "Contratado", color: "#17C777" };
+        case "employee.status.rejected":
+        case EmployeeStatusEnum.REJECTED:
+            return { label: "Rejeitado", color: "#F04438" };
+        case "employee.status.under-review":
+        case EmployeeStatusEnum.UNDER_REVIEW:
         default:
-            return "#F5A623";
+            return { label: "Em análise", color: "#F5A623" };
     }
 }
 
@@ -69,7 +82,7 @@ export default function Employees() {
     const [employees, setEmployees] = useState<EmployeeCardOutputDTO[]>([]);
     const [totalCount, setTotalCount] = useState(0);
 
-    useEffect(() => {
+    function fetchEmployees() {
         setLoading(true);
         setError(null);
 
@@ -81,27 +94,69 @@ export default function Employees() {
             })
             .catch((err) => {
                 if (axios.isAxiosError(err)) {
-                    const message = err.response?.data?.message ?? "Erro ao buscar funcionários";
+                    const raw = err.response?.data?.message;
+                    const message =
+                        typeof raw === "string" ? raw : raw?.message ?? "Erro ao buscar funcionários";
                     setError(message);
                 } else {
                     setError("Erro inesperado ao buscar funcionários");
                 }
             })
             .finally(() => setLoading(false));
+    }
+
+    useEffect(() => {
+        fetchEmployees();
     }, [search]);
 
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeCardOutputDTO | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+
+    const [employeeToEdit, setEmployeeToEdit] = useState<{
+        id: number;
+        data: Partial<EmployeeRequestDTO>;
+    } | null>(null);
+    const [editLoadingId, setEditLoadingId] = useState<number | null>(null);
+
+    const [viewEmployeeId, setViewEmployeeId] = useState<number | null>(null);
+
     function handleViewDetails(id: number) {
-        console.log("ver detalhes", id);
+        setViewEmployeeId(id);
         setOpenMenuId(null);
     }
 
     function handleEdit(id: number) {
-        console.log("editar", id);
         setOpenMenuId(null);
+        setEditLoadingId(id);
+
+        employeeService
+            .findOne(id)
+            .then((data) => {
+                setEmployeeToEdit({
+                    id: data.id,
+                    data: {
+                        name: data.name,
+                        email: data.email,
+                        phone: data.phone,
+                        role: data.role,
+                        department: data.department,
+                        salary: data.salary,
+                        city: data.city,
+                    },
+                });
+            })
+            .catch((err) => {
+                if (axios.isAxiosError(err)) {
+                    const raw = err.response?.data?.message;
+                    setError(typeof raw === "string" ? raw : raw?.message ?? "Erro ao carregar funcionário");
+                } else {
+                    setError("Erro inesperado ao carregar funcionário");
+                }
+            })
+            .finally(() => setEditLoadingId(null));
     }
 
     function handleAskDelete(employee: EmployeeCardOutputDTO) {
@@ -110,8 +165,24 @@ export default function Employees() {
     }
 
     function handleConfirmDelete() {
-        console.log("excluir", employeeToDelete?.id);
-        setEmployeeToDelete(null);
+        if (!employeeToDelete) return;
+
+        employeeService
+            .deleteOne(employeeToDelete.id)
+            .then(() => {
+                fetchEmployees();
+            })
+            .catch((err) => {
+                if (axios.isAxiosError(err)) {
+                    const raw = err.response?.data?.message;
+                    const message =
+                        typeof raw === "string" ? raw : raw?.message ?? "Erro ao excluir funcionário";
+                    setError(message);
+                } else {
+                    setError("Erro inesperado ao excluir funcionário");
+                }
+            })
+            .finally(() => setEmployeeToDelete(null));
     }
 
     return (
@@ -174,7 +245,7 @@ export default function Employees() {
                         </FilterDropdown>
                     )}
 
-                    <NewEmployeeButton>
+                    <NewEmployeeButton onClick={() => setIsNewModalOpen(true)}>
                         <span>+</span> Novo Funcionário
                     </NewEmployeeButton>
                 </div>
@@ -188,70 +259,75 @@ export default function Employees() {
                     <TableHeader>Status</TableHeader>
                     <TableHeader style={{ textAlign: "center" }}>Ação</TableHeader>
 
-                    {!loading && employees.map((emp) => (
-                        <TableRow key={emp.id}>
+                    {!loading && employees.map((emp) => {
+                        const statusInfo = getStatusInfo(emp.status);
 
-                            <RowInfo>
-                                <Avatar name={emp.name} />
+                        return (
+                            <TableRow key={emp.id}>
+                                <RowInfo>
+                                    <Avatar name={emp.name} />
+                                    <RowText>
+                                        <RowName>{emp.name}</RowName>
+                                        <RowEmail>{emp.email}</RowEmail>
+                                    </RowText>
+                                </RowInfo>
 
-                                <RowText>
-                                    <RowName>{emp.name}</RowName>
-                                    <RowEmail>{emp.email}</RowEmail>
-                                </RowText>
-                            </RowInfo>
+                                <div style={{ fontWeight: 500 }}>{emp.role}</div>
+                                <div style={{ color: theme.colors.textSecondary }}>{emp.department}</div>
 
-                            <div style={{ fontWeight: 500 }}>{emp.role}</div>
-                            <div style={{ color: theme.colors.textSecondary }}>{emp.department}</div>
+                                <StatusBadge $dotColor={statusInfo.color}>
+                                    <span className="dot" /> {statusInfo.label}
+                                </StatusBadge>
 
-                            <StatusBadge $dotColor={getStatusColor(emp.status)}>
-                                <span className="dot" /> {emp.status}
-                            </StatusBadge>
+                                <div style={{ textAlign: "center" }}>
+                                    <ActionMenuWrapper ref={openMenuId === emp.id ? menuRef : undefined}>
+                                        <ActionMenuButton
+                                            onClick={() => setOpenMenuId(openMenuId === emp.id ? null : emp.id)}
+                                            disabled={editLoadingId === emp.id}
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A0A0A0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <circle cx="12" cy="12" r="1"></circle>
+                                                <circle cx="12" cy="5" r="1"></circle>
+                                                <circle cx="12" cy="19" r="1"></circle>
+                                            </svg>
+                                        </ActionMenuButton>
 
-                            <div style={{ textAlign: "center" }}>
-                                <ActionMenuWrapper ref={openMenuId === emp.id ? menuRef : undefined}>
-                                    <ActionMenuButton onClick={() => setOpenMenuId(openMenuId === emp.id ? null : emp.id)}>
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A0A0A0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <circle cx="12" cy="12" r="1"></circle>
-                                            <circle cx="12" cy="5" r="1"></circle>
-                                            <circle cx="12" cy="19" r="1"></circle>
-                                        </svg>
-                                    </ActionMenuButton>
+                                        {openMenuId === emp.id && (
+                                            <ActionsMenu>
+                                                <ActionsMenuTitle>Ações</ActionsMenuTitle>
 
-                                    {openMenuId === emp.id && (
-                                        <ActionsMenu>
-                                            <ActionsMenuTitle>Ações</ActionsMenuTitle>
+                                                <ActionsMenuItem onClick={() => handleViewDetails(emp.id)}>
+                                                    Ver detalhes
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="9 18 15 12 9 6" />
+                                                    </svg>
+                                                </ActionsMenuItem>
 
-                                            <ActionsMenuItem onClick={() => handleViewDetails(emp.id)}>
-                                                Ver detalhes
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="9 18 15 12 9 6" />
-                                                </svg>
-                                            </ActionsMenuItem>
+                                                <ActionsMenuItem onClick={() => handleEdit(emp.id)}>
+                                                    Editar
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M12 20h9" />
+                                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                                                    </svg>
+                                                </ActionsMenuItem>
 
-                                            <ActionsMenuItem onClick={() => handleEdit(emp.id)}>
-                                                Editar
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M12 20h9" />
-                                                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                                                </svg>
-                                            </ActionsMenuItem>
-
-                                            <ActionsMenuItem $danger onClick={() => handleAskDelete(emp)}>
-                                                Excluir
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="3 6 5 6 21 6" />
-                                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                                    <path d="M10 11v6" />
-                                                    <path d="M14 11v6" />
-                                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                                </svg>
-                                            </ActionsMenuItem>
-                                        </ActionsMenu>
-                                    )}
-                                </ActionMenuWrapper>
-                            </div>
-                        </TableRow>
-                    ))}
+                                                <ActionsMenuItem $danger onClick={() => handleAskDelete(emp)}>
+                                                    Excluir
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <polyline points="3 6 5 6 21 6" />
+                                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                                        <path d="M10 11v6" />
+                                                        <path d="M14 11v6" />
+                                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                                    </svg>
+                                                </ActionsMenuItem>
+                                            </ActionsMenu>
+                                        )}
+                                    </ActionMenuWrapper>
+                                </div>
+                            </TableRow>
+                        );
+                    })}
                 </TableGrid>
             </TableContainer>
 
@@ -272,6 +348,37 @@ export default function Employees() {
                         </ModalActions>
                     </ModalBox>
                 </ModalOverlay>
+            )}
+
+            {isNewModalOpen && (
+                <EmployeeFormModal
+                    mode="create"
+                    onClose={() => setIsNewModalOpen(false)}
+                    onSuccess={() => {
+                        setIsNewModalOpen(false);
+                        fetchEmployees();
+                    }}
+                />
+            )}
+
+            {employeeToEdit && (
+                <EmployeeFormModal
+                    mode="edit"
+                    employeeId={employeeToEdit.id}
+                    initialData={employeeToEdit.data}
+                    onClose={() => setEmployeeToEdit(null)}
+                    onSuccess={() => {
+                        setEmployeeToEdit(null);
+                        fetchEmployees();
+                    }}
+                />
+            )}
+
+            {viewEmployeeId !== null && (
+                <EmployeeDetailsModal
+                    employeeId={viewEmployeeId}
+                    onClose={() => setViewEmployeeId(null)}
+                />
             )}
         </EmployeesContainer>
     );
