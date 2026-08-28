@@ -53,45 +53,66 @@ import {
     PaginationPage,
     PaginationEllipsis,
 } from "./style";
+import { employeeService } from "../../services/employees.service";
+import { EmployeeCardOutputDTO } from "../../types/employee";
+import axios from "axios";
 
-interface Employee {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-    department: string;
-    status: string;
-    statusColor: string;
+function getStatusColor(status: string): string {
+    switch (status) {
+        case "Aprovado":
+        case "Contratado":
+            return "#17C777";
+        case "Rejeitado":
+            return "#F04438";
+        case "Em análise":
+        default:
+            return "#F5A623";
+    }
 }
 
 export default function Employees() {
     const theme = useTheme();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [search, setSearch] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [employees, setEmployees] = useState<EmployeeCardOutputDTO[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-    const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+    const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeCardOutputDTO | null>(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
-    const [employeeToView, setEmployeeToView] = useState<Employee | null>(null);
+    const [employeeToEdit, setEmployeeToEdit] = useState<EmployeeCardOutputDTO | null>(null);
+    const [employeeToView, setEmployeeToView] = useState<EmployeeCardOutputDTO | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const itemsPerPage = 5;
 
-    const mockEmployees: Employee[] = Array(23)
-        .fill({
-            name: "Maria Nogueira Silva",
-            email: "maria.nogueira@gmail.com",
-            role: "Analista Suporte",
-            department: "Tecnologia",
-            status: "Em análise",
-            statusColor: theme.colors.status.review,
-        })
-        .map((emp, index) => ({ ...emp, id: index + 1 }));
+    useEffect(() => {
+        setLoading(true);
+        setError(null);
 
-    const totalPages = Math.max(1, Math.ceil(mockEmployees.length / itemsPerPage));
+        employeeService
+            .findMany({ name: search || undefined })
+            .then((data) => {
+                setEmployees(data.employees);
+                setTotalCount(data.totalCount);
+                setCurrentPage(1);
+            })
+            .catch((err) => {
+                if (axios.isAxiosError(err)) {
+                    const message = err.response?.data?.message ?? "Erro ao buscar funcionários";
+                    setError(message);
+                } else {
+                    setError("Erro inesperado ao buscar funcionários");
+                }
+            })
+            .finally(() => setLoading(false));
+    }, [search]);
 
-    const paginatedEmployees = mockEmployees.slice(
+    const totalPages = Math.max(1, Math.ceil(employees.length / itemsPerPage));
+
+    const paginatedEmployees = employees.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
@@ -117,17 +138,17 @@ export default function Employees() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    function handleViewDetails(employee: Employee) {
+    function handleViewDetails(employee: EmployeeCardOutputDTO) {
         setEmployeeToView(employee);
         setOpenMenuId(null);
     }
 
-    function handleEdit(employee: Employee) {
+    function handleEdit(employee: EmployeeCardOutputDTO) {
         setEmployeeToEdit(employee);
         setOpenMenuId(null);
     }
 
-    function handleAskDelete(employee: Employee) {
+    function handleAskDelete(employee: EmployeeCardOutputDTO) {
         setEmployeeToDelete(employee);
         setOpenMenuId(null);
     }
@@ -160,7 +181,7 @@ export default function Employees() {
                 <StatsCard>
                     <StatsTitle>Quantidade de Funcionários</StatsTitle>
                     <StatsValueRow>
-                        <StatsValue>142</StatsValue>
+                        <StatsValue>{totalCount}</StatsValue>
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={theme.colors.primary} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                             <circle cx="9" cy="7" r="4"></circle>
@@ -168,9 +189,10 @@ export default function Employees() {
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </StatsValueRow>
-                    <StatsSubtext>23 cadastrados hoje</StatsSubtext>
+                    <StatsSubtext>{totalCount} cadastrados no total</StatsSubtext>
                 </StatsCard>
             </HeaderRow>
+            {error && <p style={{ color: "red" }}>{error}</p>}
 
             <ActionRow>
                 <SearchWrapper>
@@ -220,7 +242,7 @@ export default function Employees() {
                     <TableHeader>Status</TableHeader>
                     <TableHeader style={{ textAlign: "center" }}>Ação</TableHeader>
 
-                    {paginatedEmployees.map((emp) => (
+                    {!loading && paginatedEmployees.map((emp) => (
                         <TableRow key={emp.id}>
                             <RowInfo>
                                 <Avatar name={emp.name} />
@@ -233,7 +255,7 @@ export default function Employees() {
                             <div style={{ fontWeight: 500 }}>{emp.role}</div>
                             <div style={{ color: theme.colors.textSecondary }}>{emp.department}</div>
 
-                            <StatusBadge $dotColor={emp.statusColor}>
+                            <StatusBadge $dotColor={getStatusColor(emp.status)}>
                                 <span className="dot" /> {emp.status}
                             </StatusBadge>
 
@@ -287,9 +309,9 @@ export default function Employees() {
 
             <PaginationWrapper>
                 <PaginationInfo>
-                    Mostrando <strong>{(currentPage - 1) * itemsPerPage + 1}</strong>–
-                    <strong>{Math.min(currentPage * itemsPerPage, mockEmployees.length)}</strong> de{" "}
-                    <strong>{mockEmployees.length}</strong>
+                    Mostrando <strong>{employees.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</strong>–
+                    <strong>{Math.min(currentPage * itemsPerPage, employees.length)}</strong> de{" "}
+                    <strong>{employees.length}</strong>
                 </PaginationInfo>
 
                 <PaginationControls>
