@@ -11,8 +11,6 @@ import {
     } from "../employeeModalStyles";
     import type {EmployeeFormData} from "../EmployeeFormModal";
     
-    const DEPARTMENTS = ["Mentoring", "Mathematics", "Add Maths", "Computer Science", "History"];
-    
     interface EmployeeDetailsModalProps {
     employee: EmployeeFormData;
     onClose: () => void;

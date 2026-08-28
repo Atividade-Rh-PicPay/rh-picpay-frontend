@@ -412,3 +412,85 @@ export const ModalAddButton = styled.button`
     ;
 
 `
+export const PaginationWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding: 0 4px;
+    flex-wrap: wrap;
+gap: 16px;
+`;
+
+export const PaginationInfo = styled.span`
+    font-size: 13px;
+color: ${({ theme }) => theme.colors.textSecondary};
+
+strong {
+    color: ${({ theme }) => theme.colors.textPrimary};
+    font-weight: 600;
+}
+`;
+
+export const PaginationControls = styled.div`
+    display: flex;
+    align-items: center;
+gap: 6px;
+`;
+
+export const PaginationArrow = styled.button`
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.colors.surface};
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: ${({ theme }) => theme.colors.textPrimary};
+transition: opacity 0.2s, transform 0.15s;
+
+&:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+&:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+`;
+
+export const PaginationPage = styled.button<{ $active?: boolean }>`
+    min-width: 36px;
+    height: 36px;
+    padding: 0 4px;
+    border: none;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: ${({ $active }) => ($active ? 700 : 500)};
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.2s;
+
+background: ${({ theme, $active }) =>
+    $active ? theme.colors.primary : "transparent"};
+color: ${({ theme, $active }) =>
+    $active ? "#ffffff" : theme.colors.textSecondary};
+
+&:hover {
+    ${({ $active }) => !$active && "opacity: 0.7;"}
+    transform: ${({ $active }) => (!$active ? "translateY(-1px)" : "none")};
+}
+`;
+
+export const PaginationEllipsis = styled.span`
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: ${({ theme }) => theme.colors.textSecondary};
+    font-size: 14px;
+`;

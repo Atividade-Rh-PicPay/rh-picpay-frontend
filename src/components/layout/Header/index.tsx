@@ -1,21 +1,30 @@
+import { useEffect, useState } from "react";
 import Avatar from "../../ui/Avatar";
+import { profileService } from "../../../services/profile.service";
+import { ProfileOutputDTO } from "../../../types/profile";
 import { HeaderContainer, UserInfo, UserName, UserRole } from "./style";
-
-interface LoggedUser {
-  name: string;
-  role: string;
-}
-
-const userMock: LoggedUser = {name: "Gabriel Silva", role: "Gerente de RH" };
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<ProfileOutputDTO | null>(null);
+
+  useEffect(() => {
+    profileService
+      .getMyProfile()
+      .then(setProfile)
+      .catch(() => {
+        navigate("/login")
+      });
+  }, []);
+
   return (
     <HeaderContainer>
       <UserInfo>
-        <UserName>{userMock.name}</UserName>
-        <UserRole>{userMock.role}</UserRole>
+        <UserName>{profile?.name ?? "..."}</UserName>
+        <UserRole>{profile?.role ?? ""}</UserRole>
       </UserInfo>
-      <Avatar name={userMock.name} />
+      <Avatar name={profile?.name ?? ""} />
     </HeaderContainer>
   );
 }

@@ -37,6 +37,7 @@ function Login() {
 
       navigate("/dashboard");
     } catch (error){
+      console.log(error);
       if (axios.isAxiosError(error)){
         const message = error.response?.data?.message ?? "E-mail ou senha inválidos";
         setError(message);

@@ -31,11 +31,19 @@ export interface EmployeeCardOutputDTO {
   status: string;
 }
 
+export interface CountEmployeeStatusOutputDTO{
+  REJECTED: number,
+  HIRED: number,
+  APPROVED: number,
+  UNDER_REVIEW: number
+}
+
 export interface FindManyEmployeesQueryParamsDTO {
   name?: string;
   email?: string;
   role?: string;
   status?: number;
+  sortDirection?: number;
   take?: number;
   skip?: number;
 }
