@@ -17,3 +17,13 @@ export const Main = styled.main`
     flex: 1;
     padding: 32px;
 `;
+
+export const LoadingOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
