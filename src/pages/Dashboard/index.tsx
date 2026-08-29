@@ -116,8 +116,15 @@ function Dashboard() {
   }, []);
 
   async function handleChangeStatus(id: number, newStatus: StatusName) {
-    console.log("change status", id, newStatus);
-    await loadDashboardLists();
+    try {
+      await employeeService.partialUpdate(id, {
+        status: EmployeeStatusEnum[newStatus]
+      });
+      await loadDashboardLists();
+    } catch (err) {
+      console.error("Erro ao alterar status", err);
+      alert("Erro ao alterar o status do funcionário.");
+    }
   }
 
   if (loading) return <DashboardContainer>Carregando...</DashboardContainer>;
