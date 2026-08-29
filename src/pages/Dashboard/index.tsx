@@ -144,11 +144,15 @@ function Dashboard() {
     <Banner>
     <BannerTitle>Olá, {profile?.name}!</BannerTitle>
     <BannerSubtitle>
-    Você tem {employeeStatus?.UNDER_REVIEW} candidatos aguardando análise hoje.
+        Você tem {employeeStatus?.UNDER_REVIEW} candidatos aguardando análise hoje.
       </BannerSubtitle>
-    <BannerActions>
-    <PrimaryButton>Cadastrar funcionário</PrimaryButton>
-    <SecondaryButton>Ver funcionários</SecondaryButton>
+      <BannerActions>
+      <PrimaryButton onClick={() => navigate("/employees?new=true")}>
+        Cadastrar funcionário
+      </PrimaryButton>
+      <SecondaryButton onClick={() => navigate("/employees")}>
+        Ver funcionários
+      </SecondaryButton>
     </BannerActions>
     </Banner>
 
@@ -168,8 +172,8 @@ function Dashboard() {
     <ListsRow>
     <ListCard>
     <ListHeader>
-    <ListTitle>Aguardando análise</ListTitle>
-    <SeeMoreLink>Ver mais</SeeMoreLink>
+      <ListTitle>Aguardando análise</ListTitle>
+      <SeeMoreLink onClick={() => navigate("/employees")}>Ver mais</SeeMoreLink>
     </ListHeader>
     {underReview.length === 0 ? (
       <EmptyMessage>Nenhum candidato aguardando análise.</EmptyMessage>
@@ -202,8 +206,8 @@ function Dashboard() {
 
     <ListCard>
     <ListHeader>
-    <ListTitle>Últimos cadastros</ListTitle>
-    <SeeMoreLink>Ver mais</SeeMoreLink>
+      <ListTitle>Últimos cadastros</ListTitle>
+      <SeeMoreLink onClick={() => navigate("/employees")}>Ver mais</SeeMoreLink>
     </ListHeader>
     {recentlyAdded.length === 0 ? (
       <EmptyMessage>Nenhum funcionário cadastrado ainda.</EmptyMessage>
