@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "styled-components";
-import { useSearchParams } from "react-router-dom";
+import { useOutletContext, useSearchParams } from "react-router-dom";
 import Avatar from "../../components/ui/Avatar";
 import EmployeeFormModal from "../../components/employees/EmployeeFormModal";
 import EmployeeDetailsModal from "../../components/employees/EmployeeDetailsModal";
@@ -60,6 +60,10 @@ import axios from "axios";
 import { EmployeeStatusEnum } from "../../types/enums";
 import { getStatusInfo, normalizeStatus } from "../../utils/employee.status";
 
+interface LayoutContext {
+  setEmployeeCount: React.Dispatch<React.SetStateAction<number>>;
+}
+
 export default function Employees() {
     const theme = useTheme();
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -72,10 +76,10 @@ export default function Employees() {
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
     const [employeeToDelete, setEmployeeToDelete] = useState<EmployeeCardOutputDTO | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [isAddOpen, setIsAddOpen] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<EmployeeStatusEnum | undefined>(undefined);
     const menuRef = useRef<HTMLDivElement>(null);
     const [searchParams, setSearchParams] = useSearchParams();
+    const { setEmployeeCount } = useOutletContext<LayoutContext>();
 
     const [isNewModalOpen, setIsNewModalOpen] = useState(false);
     const [employeeToEdit, setEmployeeToEdit] = useState<{
@@ -88,31 +92,33 @@ export default function Employees() {
     const itemsPerPage = 5;
 
     function fetchEmployees() {
-        setLoading(true);
-        setError(null);
+      setLoading(true);
+      setError(null);
 
-        employeeService
-            .findMany({
-                name: search || undefined,
-                status: selectedStatus,
-                take: itemsPerPage,
-                skip: (currentPage - 1) * itemsPerPage,
-            })
-            .then((data) => {
-                setEmployees(data.employees);
-                setTotalCount(data.totalCount);
-            })
-            .catch((err) => {
-                if (axios.isAxiosError(err)) {
-                    const raw = err.response?.data?.message;
-                    const message =
-                        typeof raw === "string" ? raw : raw?.message ?? "Erro ao buscar funcionários";
-                    setError(message);
-                } else {
-                    setError("Erro inesperado ao buscar funcionários");
-                }
-            })
-            .finally(() => setLoading(false));
+      Promise.all([
+        employeeService.findMany({
+            name: search || undefined,
+            status: selectedStatus,
+            take: itemsPerPage,
+            skip: (currentPage - 1) * itemsPerPage,
+        }),
+        employeeService.count(),
+      ])
+      .then(([listResult, countResult]) => {
+        setEmployees(listResult.employees);
+        setTotalCount(listResult.totalCount);
+        setEmployeeCount(countResult.count);
+      })
+      .catch((err) => {
+        if (axios.isAxiosError(err)) {
+          const raw = err.response?.data?.message;
+            const message =
+              typeof raw === "string" ? raw : raw?.message ?? "Erro ao buscar funcionários";
+            setError(message);
+        } else {
+          setError("Erro inesperado ao buscar funcionários");
+        }
+      }).finally(() => setLoading(false));
     }
 
     useEffect(() => {
@@ -268,7 +274,7 @@ export default function Employees() {
                             <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </StatsValueRow>
-                    <StatsSubtext>{totalCount} cadastrados no total</StatsSubtext>
+                    <StatsSubtext>{totalCount} encontrados</StatsSubtext>
                 </StatsCard>
             </HeaderRow>
             {error && <p style={{ color: "red" }}>{error}</p>}
@@ -282,7 +288,7 @@ export default function Employees() {
                         </svg>
                     </SearchIcon>
                     <SearchInput
-                        placeholder="Buscar por nome ou cargo"
+                        placeholder="Buscar por nome"
                         value={search}
                         onChange={(e) => handleSearchChange(e.target.value)}
                     />
